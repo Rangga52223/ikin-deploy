@@ -1,8 +1,8 @@
 from route import need
 from fastapi import UploadFile, File, Form
 from base_response import error_response
-from feature.need import create_project, delete_project, track_tel_handle
-from feature.helper.schema import save_project_data
+from feature.need import create_project, delete_project, track_tel_handle, edit_project
+from feature.helper.schema import save_project_data, edit_project_sch
 
 @need.post('/upload')
 async def upload_r(
@@ -32,3 +32,14 @@ async def delete_project_r(id):
     
     except Exception as e:
         return error_response(http_status=402, message="erro for request delete")
+    
+@need.put('/update_project')
+async def update_project_r(user : edit_project_sch):
+    try:
+        id = user.id
+        new_name = user.new_name
+        circuit = user.circuit
+        return edit_project(id, new_name, circuit)
+    
+    except:
+        return error_response(message='Error Update Project')

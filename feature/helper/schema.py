@@ -7,6 +7,11 @@ class save_project_data(BaseModel):
     circuit : str
     note : Optional[str] = None
 
+class edit_project_sch(BaseModel):
+    id  : UUID
+    new_name : str
+    circuit : Optional[str] = None
+
 class get_data(BaseModel):
     id_document : UUID
     id_veh  : str

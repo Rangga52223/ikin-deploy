@@ -1,5 +1,7 @@
 from db_control.db_connect import SessionLocal
 from db_control.model import RaceTelematry, ProjectName
+from sqlalchemy.exc import SQLAlchemyError
+from base_response import error_response
 import uuid 
 from datetime import datetime, timezone
 import pandas as pd
@@ -54,3 +56,38 @@ def delete_pro(id):
     data_delete = db.query(ProjectName).get(id)
     db.delete(data_delete)
     db.commit()
+
+def edit_project(id: str, name: str, circuit: str = None):
+    try:
+        # 1. AMBIL OBJEK MODEL MENGGUNAKAN .first()
+        # project_update sekarang adalah objek ProjectName, BUKAN Query
+        project_item = db.query(ProjectName).filter(ProjectName.id == id).first()
+
+        if not project_item:
+            # 2. Logika pemeriksaan keberadaan objek
+            return error_response(success=False, message='Project not found')
+        
+        project_item.project_name = name
+        
+        # Atribut circuit hanya diubah jika nilai baru diberikan (bukan None)
+        if circuit is not None:
+             project_item.circuit = circuit
+        
+        # 4. Commit Perubahan
+        db.commit()
+        db.refresh(project_item)
+        
+        return {"success": True, "data": project_item} # Asumsi sukses_response
+        
+    except SQLAlchemyError as e:
+        # PENTING: Rollback transaksi sebelum raise/return error
+        db.rollback() 
+        return error_response(success=False, message=f'Database Error during update: {e}')
+    
+    except Exception as e:
+        # Rollback juga untuk kesalahan non-SQLAlchemy
+        db.rollback() 
+        return error_response(success=False, message=f'General Error: {e}')
+        
+
+
