@@ -1,4 +1,6 @@
 import pandas as pd
+import requests
+import io
 def clean_df_tel(df):
     print('DEBUG: Clean_df')
     for c in ['expire_at', 'meta_source']:
@@ -73,6 +75,7 @@ def clean_df_tel(df):
 def combine_data_tel_weather(df, df2):
     print('DEBUG: Combine_Weather ')
     # jika ada kolom epoch seconds, langsung parse
+    print(df2.columns)
     if 'TIME_UTC_SECONDS' in df2.columns:
         try:
             df2['timestamp_dt'] = pd.to_datetime(df2['TIME_UTC_SECONDS'], unit='s', utc=True)
@@ -120,3 +123,31 @@ def combine_data_tel_weather(df, df2):
         tolerance=pd.Timedelta('5s')  # ubah sesuai kebutuhan atau hapus tolerance jika tidak diinginkan
     )
     return df_merged
+
+def download_to_pandas_csv(url, sep=None):
+    """
+    Mengunduh file CSV dari URL dan langsung memuatnya ke Pandas DataFrame.
+    """
+    try:
+        print(f"Mengunduh CSV dari: {url}")
+        
+        # 1. Melakukan permintaan GET
+        response = requests.get(url)
+        response.raise_for_status() # Memeriksa error HTTP]
+        print("✅ Dataset sudah di download.")
+        if sep == None:
+            data_io = io.StringIO(response.content.decode('utf-8'))
+            df = pd.read_csv(data_io)
+            print("✅ DataFrame berhasil dibuat.")
+            return df
+        data_io = io.StringIO(response.content.decode('utf-8'))
+        df = pd.read_csv(data_io, sep=sep)
+        print("✅ DataFrame berhasil dibuat.")
+        return df
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Terjadi kesalahan saat mengunduh: {e}")
+        return None
+    except Exception as e:
+        print(f"❌ Terjadi kesalahan saat memuat ke Pandas: {e}")
+        return None

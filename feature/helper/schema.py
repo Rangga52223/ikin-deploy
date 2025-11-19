@@ -18,3 +18,8 @@ class get_data(BaseModel):
 
 class get_veh_data(BaseModel):
     vehicle_id : str
+
+class upload_url(BaseModel):
+    id : UUID
+    url1 : str
+    url2 : str

@@ -1,8 +1,8 @@
 from route import need
 from fastapi import UploadFile, File, Form
 from base_response import error_response
-from feature.need import create_project, delete_project, track_tel_handle, edit_project
-from feature.helper.schema import save_project_data, edit_project_sch
+from feature.need import create_project, delete_project, track_tel_handle, edit_project, upload_data_with_url
+from feature.helper.schema import save_project_data, edit_project_sch, upload_url
 
 @need.post('/upload')
 async def upload_r(
@@ -43,3 +43,13 @@ async def update_project_r(user : edit_project_sch):
     
     except:
         return error_response(message='Error Update Project')
+    
+@need.post('/upload-url')
+async def upload_file_url_r(data : upload_url):
+    try:
+        id = data.id
+        url1 = data.url1
+        url2 = data.url2
+        return upload_data_with_url(id, url1, url2)
+    except :
+        return error_response(message='error di upload url')

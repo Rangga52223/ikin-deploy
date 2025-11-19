@@ -53,9 +53,48 @@ def safe_project(name,circuit, Note = None):
     return id_project
 
 def delete_pro(id):
+    """
+    Menghapus ProjectName dan semua RaceTelematry yang terkait.
+
+    Args:
+        id (str/int): ID dari ProjectName.
+        db (Session): Sesi database SQLAlchemy.
+    """
+    
+    # 1. Ambil objek ProjectName berdasarkan Primary Key (id)
     data_delete = db.query(ProjectName).get(id)
-    db.delete(data_delete)
-    db.commit()
+    
+    # 2. Ambil SEMUA objek RaceTelematry yang memiliki id_project yang cocok
+    #    Kita harus menggunakan .filter() dan .all() karena ini adalah pencarian non-primary key
+    delete_telemetry_list = db.query(RaceTelematry).filter(
+        RaceTelematry.id_project == id
+    ).all()
+    
+    # --- Pengecekan dan Penghapusan ---
+    
+    if data_delete is None:
+        print(f"❌ Project dengan ID {id} tidak ditemukan.")
+        return
+
+    # Siapkan daftar objek untuk dihapus: ProjectName dan semua Telemetri terkait
+    objects_to_delete = [data_delete]
+    
+    if delete_telemetry_list:
+        objects_to_delete.extend(delete_telemetry_list)
+    
+    try:
+        # Hapus semua objek yang terkumpul (ProjectName + Telemetri)
+        telemetry_count = len(delete_telemetry_list) if delete_telemetry_list else 0
+        
+        for obj in objects_to_delete:
+            db.delete(obj)
+            
+        db.commit()
+        print(f'✅ Penghapusan berhasil: Project ID {id} dan {telemetry_count} data telemetri terkait telah dihapus.')
+        
+    except Exception as e:
+        db.rollback()
+        print(f'❌ Gagal menghapus. Melakukan rollback. Error: {e}')
 
 def edit_project(id: str, name: str, circuit: str = None):
     try:

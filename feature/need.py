@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from feature.helper.cleaning import clean_df_tel, combine_data_tel_weather
+from feature.helper.cleaning import clean_df_tel, combine_data_tel_weather, download_to_pandas_csv
 from db_control.save_data import insert_race_telematry,  safe_project, delete_pro, edit_project
 from base_response import succes_response , error_response
 import io
@@ -44,7 +44,18 @@ def update_data(id, new_name, circuit):
     except Exception as e:
         return error_response(message='Error update data')
     
-    
+def upload_data_with_url(id, url1, url2):
+    try:
+        df = download_to_pandas_csv(url1)
+        df2 = download_to_pandas_csv(url2, sep=';')
+        df_tel = clean_df_tel(df)
+        df_comb = combine_data_tel_weather(df_tel, df2)
+        insert_race_telematry(df_comb, id)
+        del df, df2, df_comb, df_tel
+        return succes_response(message='File Uploaded')
+    except Exception as e:
+        return error_response(message=f'Error : {e}')
+        
     
 
     
